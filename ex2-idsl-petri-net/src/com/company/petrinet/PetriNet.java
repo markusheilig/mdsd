@@ -1,5 +1,6 @@
 package com.company.petrinet;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -30,9 +31,11 @@ public final class PetriNet implements Validator {
     }
 
     public List<Place> getPlaces() {
-        List<Place> copy = new LinkedList<>();
-        copy.addAll(places);
-        return copy;
+        return Collections.unmodifiableList(places);
+    }
+
+    public List<Transition> getTransitions() {
+        return Collections.unmodifiableList(transitions);
     }
 
     @Override

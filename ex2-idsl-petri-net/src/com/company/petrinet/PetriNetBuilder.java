@@ -21,6 +21,8 @@ public class PetriNetBuilder {
 
     private Transition currentTransition;
 
+    private Arc currentArc;
+
     void addPlace(String name) {
         Place place = new Place(name);
         places.add(place);
@@ -32,19 +34,36 @@ public class PetriNetBuilder {
     }
 
     void addIngoingTransition(String name) {
-        Transition transition = new Transition(name);
-        transitions.add(transition);
-        currentTransition = transition;
+        currentTransition = getOrCreateTransition(name);
+        if (!transitions.contains(currentTransition)) {
+            transitions.add(currentTransition);
+        }
+        Arc arc = Arc.ingoing(currentPlace, currentTransition);
+        currentTransition.addArc(arc);
+        currentPlace.addArc(arc);
+        currentArc = arc;
     }
 
     void addOutgoingTransition(String name) {
-        Transition transition = new Transition(name);
-        transitions.add(transition);
-        currentTransition = transition;
+        currentTransition = getOrCreateTransition(name);
+        if (!transitions.contains(currentTransition)) {
+            transitions.add(currentTransition);
+        }
+        Arc arc = Arc.outgoing(currentPlace, currentTransition);
+        currentTransition.addArc(arc);
+        currentPlace.addArc(arc);
+        currentArc = arc;
+    }
+
+    private Transition getOrCreateTransition(String name) {
+        return transitions.stream()
+                .filter(transition -> transition.getName() != null && transition.getName().equals(name))
+                .findFirst()
+                .orElseGet(() -> new Transition(name));
     }
 
     void addCost(int cost) {
-        currentTransition.setCost(cost);
+        currentArc.setCost(cost);
     }
 
     public PetriNet end() {
