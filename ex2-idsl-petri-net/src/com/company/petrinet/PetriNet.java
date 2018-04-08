@@ -1,7 +1,6 @@
 package com.company.petrinet;
 
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 import static com.company.petrinet.Util.findDuplicates;
@@ -16,10 +15,13 @@ public final class PetriNet implements Validator {
 
     private final List<Transition> transitions;
 
-    PetriNet(String petriNetName, List<Place> places, List<Transition> transitions) {
+    private final List<Arc> arcs;
+
+    PetriNet(String petriNetName, List<Place> places, List<Transition> transitions, List<Arc> arcs) {
         this.name = petriNetName;
         this.places = places;
         this.transitions = transitions;
+        this.arcs = arcs;
     }
 
     public static EmptyPetriNetScope create(String name) {
@@ -38,9 +40,8 @@ public final class PetriNet implements Validator {
         return Collections.unmodifiableList(transitions);
     }
 
-    @Override
-    public String toString() {
-        return String.format("PetriNet: '%s'", name);
+    public List<Arc> getArcs() {
+        return Collections.unmodifiableList(arcs);
     }
 
     @Override
@@ -50,10 +51,10 @@ public final class PetriNet implements Validator {
         require(duplicates.isEmpty(), String.format("PetriNet '%s' contains one or more duplicated places: '%s'!", name, duplicates));
         places.forEach(Validator::validate);
         transitions.forEach(Validator::validate);
+        arcs.forEach(Validator::validate);
     }
 
     private List<String> getPlaceNames() {
         return places.stream().map(Place::getName).collect(toList());
     }
-
 }

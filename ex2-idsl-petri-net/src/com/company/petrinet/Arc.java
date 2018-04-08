@@ -6,17 +6,17 @@ import static com.company.petrinet.Util.require;
 
 public class Arc implements Validator {
 
-    enum ArcType {
+    public enum ArcType {
         Ingoing,
         Outgoing
     }
 
     private final Place place;
     private final Transition transition;
-    private int cost = -1;
     private final ArcType type;
+    private int cost = -1;
 
-    private Arc(Place place, Transition transition, ArcType arcType) {
+    Arc(Place place, Transition transition, ArcType arcType) {
         this.place = place;
         this.transition = transition;
         this.type = arcType;
@@ -26,20 +26,20 @@ public class Arc implements Validator {
         this.cost = cost;
     }
 
-    static Arc ingoing(Place place, Transition transition) {
-        return new Arc(place, transition, Ingoing);
-    }
-
-    static Arc outgoing(Place place, Transition transition) {
-        return new Arc(place, transition, Outgoing);
-    }
-
     public boolean isIngoing() {
         return type == Ingoing;
     }
 
     public boolean isOutgoing() {
         return !isIngoing();
+    }
+
+    public Place getPlace() {
+        return place;
+    }
+
+    public Transition getTransition() {
+        return transition;
     }
 
     @Override

@@ -3,7 +3,7 @@ package com.company.petrinet;
 public class PlaceWithTokensAndTransitionScopeImpl implements PlaceWithTokensAndTransitionScope {
 
     private final PetriNetBuilder builder;
-    public PlaceWithTokensAndTransitionScopeImpl(PetriNetBuilder builder) {
+    PlaceWithTokensAndTransitionScopeImpl(PetriNetBuilder builder) {
         this.builder = builder;
     }
 

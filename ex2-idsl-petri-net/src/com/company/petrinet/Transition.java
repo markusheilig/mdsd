@@ -1,10 +1,10 @@
 package com.company.petrinet;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 import static com.company.petrinet.Util.require;
+import static java.util.stream.Collectors.toList;
 
 public final class Transition implements Validator {
 
@@ -24,13 +24,12 @@ public final class Transition implements Validator {
         arcs.add(arc);
     }
 
-    public List<Arc> getArcs() {
-        return Collections.unmodifiableList(arcs);
+    public List<Place> getIngoingPlaces() {
+        return arcs.stream().filter(Arc::isIngoing).map(Arc::getPlace).collect(toList());
     }
 
-    @Override
-    public String toString() {
-        return String.format("Transition '%s'", name);
+    public List<Place> getOutgoingPlace() {
+        return arcs.stream().filter(Arc::isOutgoing).map(Arc::getPlace).collect(toList());
     }
 
     @Override
