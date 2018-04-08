@@ -44,6 +44,10 @@ public final class PetriNet implements Validator {
         return Collections.unmodifiableList(arcs);
     }
 
+    public int sumOfTokens() {
+        return places.stream().map(Place::getTokens).reduce(0, (x, y) -> x + y);
+    }
+
     @Override
     public void validate() throws IllegalArgumentException {
         require(name != null && !name.isEmpty(), "PetriNet must have a name!");

@@ -47,7 +47,7 @@ public class Main {
     private static void describe(PetriNet net) {
         printf("Petri net name: '%s'", net.getName());
         printf("Number of places: %d", net.getPlaces().size());
-        printf("Sum of tokens: %d", net.getPlaces().stream().map(Place::getTokens).reduce(0, (x, y) -> x + y));
+        printf("Sum of tokens: %d", net.sumOfTokens());
         net.getPlaces().forEach(Main::describe);
         net.getTransitions().forEach(Main::describe);
         net.getArcs().forEach(Main::describe);
