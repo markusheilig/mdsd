@@ -1,2 +1,2 @@
 # mdsd
-excercises for course 'model driven software development'
+exercises for course 'model driven software development'
