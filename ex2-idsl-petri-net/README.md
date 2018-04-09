@@ -1,5 +1,9 @@
 # Internal DSL for building Petri Nets
 
+## Class Diagram
+
+![alt text](class-diagram.png "Class Diagram")
+
 ## Abstract Syntax
 
 PetriNet &rarr; Place
