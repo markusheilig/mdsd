@@ -1,4 +1,16 @@
+# Internal DSL for building Petri Nets
+
 ## Abstract Syntax
+
+PetriNet &rarr; Place
+
+Place &rarr; name token Transition
+
+Transition &rarr; name (Ingoing | Outgoing)
+
+Ingoing &rarr; cost (Transition | Place | end)
+
+Outgoing &rarr; cost (Transition | Place | end)
 
 
 ## Static Semantics
