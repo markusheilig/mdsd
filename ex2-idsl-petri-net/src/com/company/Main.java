@@ -5,11 +5,9 @@ import com.company.petrinet.PetriNet;
 import com.company.petrinet.Place;
 import com.company.petrinet.Transition;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.function.BinaryOperator;
-
 public class Main {
+
+    private Main() { }
 
     public static void main(String[] args) {
 
