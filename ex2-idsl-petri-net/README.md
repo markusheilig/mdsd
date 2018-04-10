@@ -1,5 +1,9 @@
 # Internal DSL for building Petri Nets
 
+## Petri Net
+
+![alt text](petrinetz.png "Petri Net")
+
 ## Class Diagram
 
 ![alt text](class-diagram.png "Class Diagram")
