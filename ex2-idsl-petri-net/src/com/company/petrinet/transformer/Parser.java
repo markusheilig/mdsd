@@ -111,14 +111,19 @@ public class Parser {
             };
 
             abstract State back();
+
             abstract State next();
+
             abstract boolean isNodeValid(String node);
 
             private static boolean firstTransition = true;
-            public boolean isFirstTransition(){
+
+            public boolean isFirstTransition() {
                 return firstTransition;
             }
-        };
+        }
+
+        ;
 
 
         @Override
@@ -127,28 +132,32 @@ public class Parser {
 
             final String name = "\"" + attributes.getValue(NODE_ATTR_NAME) + "\"";
 
-            if(state.isNodeValid(nodeName)){
+            if (state.isNodeValid(nodeName)) {
                 state = state.next();
-                if(nodeName.equals(NODE_PETRINET)){
-                    javaCode += "PetriNet.create(" + name + ")\n";
-                }else if(nodeName.equals(NODE_PLACE)){
-                    final String tokens = attributes.getValue(NODE_ATTR_TOKENS);
-                    javaCode += "\t.addPlace(" + name + ")\n";
-                    javaCode += "\t\t.initWithTokens(" + tokens + ")\n";
-                }else if(nodeName.equals(NODE_TRANSITION)){
-                    final String type = attributes.getValue(NODE_ATTR_TYPE);
-                    final String cost = attributes.getValue(NODE_ATTR_COST);
-                    if (!state.isFirstTransition()) {
-                        javaCode += "\t  .and()\n";
-                    }
-                    if (type.equals(NODE_ATTR_TYPE_INGOING)) {
-                        javaCode += "\t\t  .withIngoingTransition(" + name + ")\n";
-                    } else {
-                        javaCode += "\t\t  .withOutgoingTransition(" + name + ")\n";
-                    }
-                    javaCode += "\t\t  .andCost(" + cost + ")\n";
+                switch (nodeName) {
+                    case NODE_PETRINET:
+                        javaCode += "PetriNet.create(" + name + ")\n";
+                        break;
+                    case NODE_PLACE:
+                        final String tokens = attributes.getValue(NODE_ATTR_TOKENS);
+                        javaCode += "\t.addPlace(" + name + ")\n";
+                        javaCode += "\t\t.initWithTokens(" + tokens + ")\n";
+                        break;
+                    case NODE_TRANSITION:
+                        final String type = attributes.getValue(NODE_ATTR_TYPE);
+                        final String cost = attributes.getValue(NODE_ATTR_COST);
+                        if (!state.isFirstTransition()) {
+                            javaCode += "\t  .and()\n";
+                        }
+                        if (type.equals(NODE_ATTR_TYPE_INGOING)) {
+                            javaCode += "\t\t  .withIngoingTransition(" + name + ")\n";
+                        } else {
+                            javaCode += "\t\t  .withOutgoingTransition(" + name + ")\n";
+                        }
+                        javaCode += "\t\t  .andCost(" + cost + ")\n";
+                        break;
                 }
-            }else {
+            } else {
                 throw new IllegalArgumentException("illegal xml node " + nodeName);
             }
         }
@@ -156,13 +165,14 @@ public class Parser {
         @Override
         public void endElement(String uri, String localName, String qName) throws SAXException {
             state = state.back();
-            if(state == State.NONE){
+            if (state == State.NONE) {
                 javaCode += "\t.end();\n";
             }
 
         }
 
-        @Override public String toString() {
+        @Override
+        public String toString() {
             return javaCode;
         }
     }
