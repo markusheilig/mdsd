@@ -123,8 +123,6 @@ public class Parser {
             }
         }
 
-        ;
-
 
         @Override
         public void startElement(String uri,
