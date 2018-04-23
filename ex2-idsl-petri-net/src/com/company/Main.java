@@ -7,30 +7,23 @@ import com.company.petrinet.Transition;
 
 public class Main {
 
-    private Main() { }
+    private Main() {
+    }
 
     public static void main(String[] args) {
 
         final PetriNet myPetriNet = PetriNet.create("Wikipedia Beispiel")
                 .addPlace("s1")
-                  .initWithTokens(9)
-                    .withOutgoingTransition("t")
-                    .andCost(2)
-                  .and()
-                    .withIngoingTransition("t0")
-                    .andCost(9)
+                .initWithTokens(8)
+                .withIngoingTransition("t")
+                .andCost(2)
+                .and()
+                .withOutgoingTransition("t2")
+                .andCost(1)
                 .addPlace("s2")
-                  .initWithTokens(1)
-                    .withOutgoingTransition("t")
-                    .andCost(1)
-                .addPlace("s3")
-                  .initWithTokens(1)
-                    .withIngoingTransition("t")
-                    .andCost(1)
-                .addPlace("s4")
-                  .initWithTokens(0)
-                    .withIngoingTransition("t")
-                    .andCost(3)
+                .initWithTokens(4)
+                .withIngoingTransition("t3")
+                .andCost(45)
                 .end();
 
         try {
