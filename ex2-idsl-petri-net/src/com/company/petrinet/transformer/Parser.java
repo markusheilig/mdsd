@@ -9,7 +9,6 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 
-import static com.company.petrinet.transformer.Parser.PetrinetHandler.State.FIRST_TRANSITION;
 import static com.company.petrinet.transformer.Parser.PetrinetHandler.State.NONE;
 import static java.util.Objects.requireNonNull;
 
@@ -17,6 +16,11 @@ public class Parser {
 
     private final String filepath;
 
+    private static final String NODE_ATTR_NAME = "name";
+    private static final String NODE_ATTR_TOKENS = "tokens";
+    private static final String NODE_ATTR_COST = "cost";
+    private static final String NODE_ATTR_TYPE = "type";
+    private static final String NODE_ATTR_TYPE_INGOING = "ingoing";
     private static final String NODE_PETRINET = "petrinet";
     private static final String NODE_TRANSITION = "transition";
     private static final String NODE_PLACE = "place";
@@ -41,6 +45,11 @@ public class Parser {
         enum State {
             NONE {
                 @Override
+                State back() {
+                    return null;
+                }
+
+                @Override
                 State next() {
                     return PETRINET;
                 }
@@ -51,6 +60,11 @@ public class Parser {
                 }
             },
             PETRINET {
+                @Override
+                State back() {
+                    return NONE;
+                }
+
                 @Override
                 State next() {
                     return PLACE;
@@ -63,8 +77,14 @@ public class Parser {
             },
             PLACE {
                 @Override
+                State back() {
+                    firstTransition = true;
+                    return PETRINET;
+                }
+
+                @Override
                 State next() {
-                    return FIRST_TRANSITION;
+                    return TRANSITION;
                 }
 
                 @Override
@@ -72,21 +92,16 @@ public class Parser {
                     return node.equals(NODE_TRANSITION);
                 }
             },
-            FIRST_TRANSITION {
+            TRANSITION {
                 @Override
-                State next() {
-                    return NEXT_TRANSITION;
+                State back() {
+                    firstTransition = false;
+                    return PLACE;
                 }
 
                 @Override
-                boolean isNodeValid(String node) {
-                    return node.equals(NODE_TRANSITION) || node.equals(NODE_PLACE);
-                }
-            },
-            NEXT_TRANSITION {
-                @Override
                 State next() {
-                    return NEXT_TRANSITION;
+                    return this;
                 }
 
                 @Override
@@ -95,8 +110,14 @@ public class Parser {
                 }
             };
 
+            abstract State back();
             abstract State next();
             abstract boolean isNodeValid(String node);
+
+            private static boolean firstTransition = true;
+            public boolean isFirstTransition(){
+                return firstTransition;
+            }
         };
 
 
@@ -104,37 +125,45 @@ public class Parser {
         public void startElement(String uri,
                                  String localName, String nodeName, Attributes attributes) throws SAXException {
 
-            final String name = "\"" + attributes.getValue("name") + "\"";
-            if (nodeName.equals(NODE_PETRINET) && state.isNodeValid(nodeName)) {
-                state = state.next();
-                javaCode += "PetriNet.create(" + name + ")\n";
-            } else if (nodeName.equals(NODE_PLACE) && state.isNodeValid(nodeName)) {
-                state = state.next();
+            final String name = "\"" + attributes.getValue(NODE_ATTR_NAME) + "\"";
 
-                final String tokens = attributes.getValue("tokens");
-                javaCode += "\t.addPlace(" + name + ")\n";
-                javaCode += "\t\t.initWithTokens(" + tokens + ")\n";
-            } else if (nodeName.equals(NODE_TRANSITION) && state.isNodeValid(nodeName)) {
+            if(state.isNodeValid(nodeName)){
                 state = state.next();
-
-                final String type = attributes.getValue("type");
-                final String cost = attributes.getValue("cost");
-                if (state != FIRST_TRANSITION) {
-                    javaCode += "\t  .and()\n";
+                if(nodeName.equals(NODE_PETRINET)){
+                    javaCode += "PetriNet.create(" + name + ")\n";
+                }else if(nodeName.equals(NODE_PLACE)){
+                    final String tokens = attributes.getValue(NODE_ATTR_TOKENS);
+                    javaCode += "\t.addPlace(" + name + ")\n";
+                    javaCode += "\t\t.initWithTokens(" + tokens + ")\n";
+                }else if(nodeName.equals(NODE_TRANSITION)){
+                    final String type = attributes.getValue(NODE_ATTR_TYPE);
+                    final String cost = attributes.getValue(NODE_ATTR_COST);
+                    if (!state.isFirstTransition()) {
+                        javaCode += "\t  .and()\n";
+                    }
+                    if (type.equals(NODE_ATTR_TYPE_INGOING)) {
+                        javaCode += "\t\t  .withIngoingTransition(" + name + ")\n";
+                    } else {
+                        javaCode += "\t\t  .withOutgoingTransition(" + name + ")\n";
+                    }
+                    javaCode += "\t\t  .andCost(" + cost + ")\n";
                 }
-                if (type.equals("ingoing")) {
-                    javaCode += "\t\t  .withIngoingTransition(" + name + ")\n";
-                } else {
-                    javaCode += "\t\t  .withOutgoingTransition(" + name + ")\n";
-                }
-                javaCode += "\t\t  .andCost(" + cost + ")\n";
-            } else {
+            }else {
                 throw new IllegalArgumentException("illegal xml node " + nodeName);
             }
         }
 
+        @Override
+        public void endElement(String uri, String localName, String qName) throws SAXException {
+            state = state.back();
+            if(state == State.NONE){
+                javaCode += "\t.end();\n";
+            }
+
+        }
+
         @Override public String toString() {
-            return javaCode + "\t.end();\n";
+            return javaCode;
         }
     }
 
