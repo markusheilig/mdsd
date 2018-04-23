@@ -8,16 +8,18 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
 
-import static com.company.petrinet.transformer.Parser.PetrinetHandler.State.*;
+import static com.company.petrinet.transformer.Parser.PetrinetHandler.State.FIRST_TRANSITION;
+import static com.company.petrinet.transformer.Parser.PetrinetHandler.State.NONE;
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
 
 public class Parser {
 
     private final String filepath;
+
+    private static final String NODE_PETRINET = "petrinet";
+    private static final String NODE_TRANSITION = "transition";
+    private static final String NODE_PLACE = "place";
 
     public Parser(String filepath) {
         this.filepath = requireNonNull(filepath);
@@ -37,27 +39,64 @@ public class Parser {
         private State state = NONE;
 
         enum State {
-            NONE,
-            PETRINET,
-            PLACE,
-            FIRST_TRANSITION,
-            NEXT_TRANSITION;
+            NONE {
+                @Override
+                State next() {
+                    return PETRINET;
+                }
 
-            static Map<State, List<State>> state = new HashMap<>();
-            static {
-                state.put(NONE, list(PETRINET));
-                state.put(PETRINET, list(PLACE));
-                state.put(PLACE, list(FIRST_TRANSITION));
-                state.put(FIRST_TRANSITION, list(NEXT_TRANSITION, PLACE));
-            }
+                @Override
+                boolean isNodeValid(String node) {
+                    return node.equals(NODE_PETRINET);
+                }
+            },
+            PETRINET {
+                @Override
+                State next() {
+                    return PLACE;
+                }
 
-            void next() {
+                @Override
+                boolean isNodeValid(String node) {
+                    return node.equals(NODE_PLACE);
+                }
+            },
+            PLACE {
+                @Override
+                State next() {
+                    return FIRST_TRANSITION;
+                }
 
-            }
+                @Override
+                boolean isNodeValid(String node) {
+                    return node.equals(NODE_TRANSITION);
+                }
+            },
+            FIRST_TRANSITION {
+                @Override
+                State next() {
+                    return NEXT_TRANSITION;
+                }
 
-            private static List<State> list(State... states) {
-                return Arrays.stream(states).collect(toList());
-            }
+                @Override
+                boolean isNodeValid(String node) {
+                    return node.equals(NODE_TRANSITION) || node.equals(NODE_PLACE);
+                }
+            },
+            NEXT_TRANSITION {
+                @Override
+                State next() {
+                    return NEXT_TRANSITION;
+                }
+
+                @Override
+                boolean isNodeValid(String node) {
+                    return node.equals(NODE_TRANSITION) || node.equals(NODE_PLACE);
+                }
+            };
+
+            abstract State next();
+            abstract boolean isNodeValid(String node);
         };
 
 
@@ -66,24 +105,17 @@ public class Parser {
                                  String localName, String nodeName, Attributes attributes) throws SAXException {
 
             final String name = "\"" + attributes.getValue("name") + "\"";
-            if (nodeName.equals("petrinet") && state == NONE) {
-                state = PETRINET;
-
+            if (nodeName.equals(NODE_PETRINET) && state.isNodeValid(nodeName)) {
+                state = state.next();
                 javaCode += "PetriNet.create(" + name + ")\n";
-            } else if (nodeName.equals("place") && (state == PETRINET || state == FIRST_TRANSITION || state == NEXT_TRANSITION)) {
-                state = PLACE;
+            } else if (nodeName.equals(NODE_PLACE) && state.isNodeValid(nodeName)) {
+                state = state.next();
 
                 final String tokens = attributes.getValue("tokens");
                 javaCode += "\t.addPlace(" + name + ")\n";
                 javaCode += "\t\t.initWithTokens(" + tokens + ")\n";
-            } else if (nodeName.equals("transition") && (state == PLACE || state == FIRST_TRANSITION || state == NEXT_TRANSITION)) {
-                if (state == PLACE) {
-                    state = FIRST_TRANSITION;
-                } else if (state == FIRST_TRANSITION){
-                    state = NEXT_TRANSITION;
-                } else {
-                    throw new IllegalArgumentException("Wrong state");
-                }
+            } else if (nodeName.equals(NODE_TRANSITION) && state.isNodeValid(nodeName)) {
+                state = state.next();
 
                 final String type = attributes.getValue("type");
                 final String cost = attributes.getValue("cost");
