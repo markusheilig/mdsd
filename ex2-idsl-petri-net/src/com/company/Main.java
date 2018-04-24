@@ -4,13 +4,20 @@ import com.company.petrinet.Arc;
 import com.company.petrinet.PetriNet;
 import com.company.petrinet.Place;
 import com.company.petrinet.Transition;
+import com.company.petrinet.transformer.XmlGenerator;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class Main {
 
     private Main() {
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws TransformerException, ParserConfigurationException, IOException {
 
         final PetriNet myPetriNet = PetriNet.create("Wikipedia Beispiel")
                 .addPlace("s1")
@@ -28,11 +35,22 @@ public class Main {
 
         try {
             myPetriNet.validate();
-            describe(myPetriNet);
+
+            XmlGenerator xmlGenerator = new XmlGenerator(myPetriNet);
+            String xml = xmlGenerator.generate();
+            writeToFile(myPetriNet.getName(), xml);
+
         } catch (IllegalArgumentException e) {
             System.err.println(e);
             System.exit(1);
         }
+    }
+
+    private static void writeToFile(String petriNetName, String content) throws IOException {
+        String filepath = petriNetName + ".xml";
+        BufferedWriter writer = new BufferedWriter(new FileWriter(filepath, false));
+        writer.write(content);
+        writer.close();
     }
 
     private static void describe(PetriNet net) {

@@ -26,6 +26,10 @@ public class Arc implements Validator {
         this.cost = cost;
     }
 
+    public int getCost() {
+        return cost;
+    }
+
     public boolean isIngoing() {
         return type == Ingoing;
     }
