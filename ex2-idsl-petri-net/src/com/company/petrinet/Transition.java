@@ -1,5 +1,6 @@
 package com.company.petrinet;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -22,6 +23,10 @@ public final class Transition implements Validator {
 
     void addArc(Arc arc) {
         arcs.add(arc);
+    }
+
+    public List<Arc> getArcs() {
+        return Collections.unmodifiableList(arcs);
     }
 
     public List<Place> getIngoingPlaces() {
